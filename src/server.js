@@ -17,34 +17,27 @@ const httpserver = http.createServer(app);
 const wsServer = new Server(httpserver);
 
 wsServer.on("connection", (socket) => {
+  socket["nickname"] = "Anon";
   //백엔드에서 connection 받을 준비
   socket.on("enter_room", (roomName, done) => {
-    console.log(roomName);
-    setTimeout(() => {
-      done("hi from be"); //서버는 백엔드에서 함수를 호출하는데 함수는 프론트 엔드에서 실행됨
-    }, 5000); //프론트엔드에서 작성된 코드를 백엔드에서 실행시키면 보안 위험
+    socket.join(roomName); // socketIO에서 지원하는 room
+    done(); //프론트엔드에서 작성된 코드를 백엔드에서 실행시키면 보안 위험
+    socket.to(roomName).emit("welcome", socket.nickname); //welcome은 event 이름
+    //welcome 이벤트를 roomNamge에 있는 모든 사람들에 emit
   });
-});
 
-/* const sockets = [];
-wss.on("connection", (socket) => {
-  sockets.push(socket); //firefox와 연결되면 넣고 chrome과 연결되면 또 추가하고
-  socket["nickname"] = "Anon";
-  console.log("Connected to Browser ✅");
-  socket.on("close", () => console.log("Disconnect from the Browser"));
-  socket.on("message", (msg) => {
-    //json.stringify는 자바스크립트 객체를 string으로 변경
-    //json.parse는 string을 자바스트립트 객체로 변경
-    const message = JSON.parse(msg);
-    switch (message.type) {
-      case "new_message":
-        sockets.forEach((aSocket) =>
-          aSocket.send(`${socket.nickname}: ${message.payload}`)
-        );
-      case "nickname":
-        socket["nickname"] = message.payload;
-    }
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket.nickname)
+    );
   });
-}); */
+
+  socket.on("new_message", (msg, roomName, done) => {
+    socket.to(roomName).emit("new_message", `${socket.nickname}: ${msg}`);
+    done();
+  });
+
+  socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
+});
 
 httpserver.listen(3000, handleListen);
