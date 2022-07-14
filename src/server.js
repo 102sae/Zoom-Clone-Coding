@@ -1,8 +1,8 @@
+import { Socket } from "dgram";
 import express from "express";
 import http from "http";
-import { type } from "os";
-import { parse } from "path";
-import WebSocket from "ws";
+import { Server } from "socket.io";
+
 const app = express();
 
 app.set("view engine", "pug");
@@ -10,14 +10,23 @@ app.set("views", __dirname + "/views");
 app.use("/public", express.static(__dirname + "/public"));
 app.get("/", (_, res) => res.render("home"));
 app.get("/*", (_, res) => res.redirect("/"));
-app.get("/", (req, res) => res.render("home"));
+
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpserver = http.createServer(app);
+const wsServer = new Server(httpserver);
 
-const sockets = [];
+wsServer.on("connection", (socket) => {
+  //백엔드에서 connection 받을 준비
+  socket.on("enter_room", (roomName, done) => {
+    console.log(roomName);
+    setTimeout(() => {
+      done("hi from be"); //서버는 백엔드에서 함수를 호출하는데 함수는 프론트 엔드에서 실행됨
+    }, 5000); //프론트엔드에서 작성된 코드를 백엔드에서 실행시키면 보안 위험
+  });
+});
 
+/* const sockets = [];
 wss.on("connection", (socket) => {
   sockets.push(socket); //firefox와 연결되면 넣고 chrome과 연결되면 또 추가하고
   socket["nickname"] = "Anon";
@@ -36,6 +45,6 @@ wss.on("connection", (socket) => {
         socket["nickname"] = message.payload;
     }
   });
-});
+}); */
 
-server.listen(3000, handleListen);
+httpserver.listen(3000, handleListen);
