@@ -10,26 +10,18 @@ html(lang="en")
 
     header 
         h1 NOOM 
-        h2
 
     main
-        h3
-        form#name
-                input(type="text", placeholder="nickname",required)
-                button Save
-
-        div#welcome 
+        div#welcome
             form 
-                input(type="text", placeholder="room name",required)
-                button Enter room 
-            h4 Open rooms...
-            ul
-        div#room 
-            
-            ul 
-            
-            form#msg
-                input(type="text", placeholder="message",required)
-                button Send
+                input(type="text" placeholder="room name",required)
+                button join room
+        div#call 
+            div#myStrem 
+            video#myFace(autoplay,playsinline, muted, width="400", height="400")
+            //- playsinline은 전체화면 방지
+            button#mute Mute 
+            button#camera Turn Carmera Off
+            select#cameras
     script(src="/socket.io/socket.io.js")  
     script(src="/public/js/app.js")
